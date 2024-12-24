@@ -18,7 +18,7 @@ def extract_text_from_pdf(pdf_file):
         text += page.get_text()
     return text
 
-def synthesize_tts(api_key, text, voice="emily", speed=1.0, sample_rate=24000):
+def synthesize_tts(api_key, text, voice="radhika", speed=1.0, sample_rate=24000):
     if not text.strip():
         raise ValueError("Text cannot be empty for TTS synthesis.")
     try:
@@ -45,9 +45,8 @@ def generate_sections_scripts(api_key, text):
         "Opening",
         "Historical Background",
         "Architecture Details",
-        "Unique Features",
-        "Call to Action"
-    ]
+        "Unique Features"
+        ]
 
     scripts = {}
     for section in sections:
@@ -57,7 +56,7 @@ def generate_sections_scripts(api_key, text):
                 "role": "user",
                 "content": (
                     f"Write a brief script (1-2 sentences) for the section '{section}' for the following text about the temple: "
-                    f"\"{text}\". Keep it engaging and concise."
+                    f"\"{text}\". Keep it engaging and concise. Provide script only for one main temple in the text. Do not mention the names of the '{section}' in the script."
                 )
             }
         ]
@@ -130,9 +129,9 @@ def main():
 
         try:
             input_text = extract_text_from_pdf(uploaded_file)
-            first_temple_text = input_text.split("\n\n")[0]  # Extract only the first temple text
+            first_temple_text = input_text.split("\n\n")[0]  # Extract only the main temple text
 
-            st.subheader("Generated Sections for First Temple")
+            st.subheader("Generated Sections for Main Temple")
 
             sections_scripts = generate_sections_scripts(openai_api_key, first_temple_text)
 
