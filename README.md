@@ -1,10 +1,10 @@
-# YouTube Shorts Scripts, TTS, and Image Generator
+# IndicVideoGen - YouTube Shorts Scripts, TTS, and Image Generator
 
-This project generates YouTube Shorts scripts, corresponding TTS (Text-to-Speech) audio, and images for a provided temple description in a PDF. Finally, it combines these elements into a video using MoviePy.
+This project generates YouTube Shorts scripts, corresponding TTS (Text-to-Speech) audio, and images for an Indic Video Generation project based on the Kshetradanam temple blog description in a PDF. Finally, it combines these elements into a video using MoviePy.
 
 ## Features
 
-- **Extract Text**: Extracts text from a PDF file, focusing on the first temple description.
+- **Extract Text**: Extracts text from a PDF file, focusing on the main temple description.
 - **Generate Scripts**: Divides the content into five sections: Opening, Historical Background, Architecture Details, Unique Features, and Call to Action.
 - **Generate Audio**: Converts each script section into audio using the Smallest.ai TTS model with the voice `raman`.
 - **Generate Images**: Creates images for each script section using OpenAI's DALL-E API.
