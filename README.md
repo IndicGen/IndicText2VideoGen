@@ -1,4 +1,4 @@
-# IndicVideoGen - YouTube Shorts Scripts, TTS, and Image Generator
+# IndicVideoGen - YouTube Shorts Scripts Generator using ChatGPT, Dall E and Smallest.ai Text to Speech
 
 This project generates YouTube Shorts scripts, corresponding TTS (Text-to-Speech) audio, and images for an Indic Video Generation project based on the Kshetradanam temple blog description in a PDF. Finally, it combines these elements into a video using MoviePy.
 
@@ -6,11 +6,13 @@ This project generates YouTube Shorts scripts, corresponding TTS (Text-to-Speech
 
 https://github.com/user-attachments/assets/6f2ddb46-857f-4c30-8a52-df233a3048ca
 
-
-
 ## Sample Video 2
 
 https://github.com/user-attachments/assets/b635b944-30fc-4747-85b1-3b59016dd5a9
+
+## System Block Diagram
+
+![Architecture](https://github.com/user-attachments/assets/b63de8a7-b347-41e7-922b-30fc7ea7d0e4)
 
 ## Features
 
