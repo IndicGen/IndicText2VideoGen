@@ -4,18 +4,13 @@ This project generates YouTube Shorts scripts, corresponding TTS (Text-to-Speech
 
 ## Sample Video 1
 
-<video width="640" height="360" controls>
-  <source src="https://github.com/IndicGen/IndicText2VideoGen/raw/refs/heads/main/sample_gen_video1.mp4" type="video/mp4">
-  Sample Generated Video 1
-</video>
+https://github.com/user-attachments/assets/6f2ddb46-857f-4c30-8a52-df233a3048ca
+
+
 
 ## Sample Video 2
 
-<video width="640" height="360" controls>
-  <source src="https://github.com/IndicGen/IndicText2VideoGen/raw/refs/heads/main/sample_gen_video2.mp4" type="video/mp4">
-  Sample Generated Video 1
-</video>
-
+https://github.com/user-attachments/assets/b635b944-30fc-4747-85b1-3b59016dd5a9
 
 ## Features
 
