@@ -1,3 +1,5 @@
-veena.mp3
-table.mp3
-sitar.mp3
+Sample Indian classical music created using Meta MusicGen
+
+veena.wav
+table.wav
+sitar.wav
