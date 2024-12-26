@@ -2,6 +2,21 @@
 
 This project generates YouTube Shorts scripts, corresponding TTS (Text-to-Speech) audio, and images for an Indic Video Generation project based on the Kshetradanam temple blog description in a PDF. Finally, it combines these elements into a video using MoviePy.
 
+## Sample Video 1
+
+<video width="640" height="360" controls>
+  <source src="https://github.com/IndicGen/IndicText2VideoGen/raw/refs/heads/main/sample_gen_video1.mp4" type="video/mp4">
+  Sample Generated Video 1
+</video>
+
+## Sample Video 2
+
+<video width="640" height="360" controls>
+  <source src="https://github.com/IndicGen/IndicText2VideoGen/raw/refs/heads/main/sample_gen_video2.mp4" type="video/mp4">
+  Sample Generated Video 1
+</video>
+
+
 ## Features
 
 - **Extract Text**: Extracts text from a PDF file, focusing on the main temple description.
