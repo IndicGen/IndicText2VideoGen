@@ -1,6 +1,10 @@
 # IndicVideoGen - YouTube Shorts Scripts Generator using ChatGPT, Dall E and Smallest.ai Text to Speech
 
-This project generates YouTube Shorts scripts, corresponding TTS (Text-to-Speech) audio, and images for an Indic Video Generation project based on the Kshetradanam temple blog description in a PDF. Finally, it combines these elements into a video using MoviePy.
+This project generates YouTube Shorts scripts, corresponding TTS (Text-to-Speech) audio, and images for an Indic Video Generation project based on the Kshetradanam temple blog description in a PDF. Finally, it combines these elements into a video using a scritable video combining library. 
+
+[Kshetdranam Blog](https://kalyangeetha.wordpress.com/) is a rich collection of blogs containing information about hundreds of temples. 
+
+![Screenshot 2024-12-27 065853](https://github.com/user-attachments/assets/b6ce67e8-d814-4cd2-8982-d7d36f1b6b98)
 
 ## Sample Video 1
 
