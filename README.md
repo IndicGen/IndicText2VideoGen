@@ -1,4 +1,4 @@
-# IndicVideoGen - From Blogs to YouTube Shorts and Reels using AI.
+# IndicVideoGen - AI based Blog-to-Video Generator
 
 This project generates YouTube Shorts scripts, corresponding TTS (Text-to-Speech) audio, and images for an Indic Video Generation project based on the Kshetradanam temple blog description in a PDF. Finally, it combines these elements into a video using a scritable video combining library. 
 
