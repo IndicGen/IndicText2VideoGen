@@ -9,6 +9,10 @@ import openai
 import fitz  # PyMuPDF
 from moviepy.editor import ImageClip, concatenate_videoclips, AudioFileClip, CompositeAudioClip, VideoFileClip
 import tempfile
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv('mdb.env')
 
 def save_uploaded_file(uploaded_file):
     """Save uploaded file and return path."""
@@ -49,7 +53,7 @@ def extract_images_from_pdf(pdf_file):
     pdf_document.close()
     return image_paths
 
-def synthesize_tts(api_key, text, voice="radhika", speed=1.0, sample_rate=24000):
+def synthesize_tts(api_key, text, voice="raman", speed=1.0, sample_rate=24000):
     if not text.strip():
         raise ValueError("Text cannot be empty for TTS synthesis.")
     try:
@@ -86,8 +90,8 @@ def generate_full_script(api_key, text):
         "For any Indian or Hindu terms (names, places, objects, rituals), please: \n"
         "1. Add hyphens between syllables\n"
         "2. Double the vowels where they should be elongated\n"
-        "3. Add pronunciation hints in parentheses for complex terms\n"
-        "Example: 'Shi-vaa' instead of 'Shiva', 'Krish-naa' instead of 'Krishna'\n"
+        "3. Add pronunciation hints in parentheses for Hindu and Indian terms\n"
+        "Example: 'Shi-vaa' instead of 'Shiva', 'Svaa-mee' instead of 'Swamy', 'Krish-naa' instead of 'Krishna', 'Aanja-neyaa' instead of 'Anjaneya', 'ari-si-kay-ray' instead of 'arisikere', 'ko-tay' instead of 'kote'.\n"
         "The script should be comprehensive and divided into these sections logically but "
         "WITHOUT explicit section titles or labels: "
         "Temple Name, Location and Main Deity; Historical Background; Architecture Details and Idols in the temple; "
@@ -113,11 +117,20 @@ def generate_full_script(api_key, text):
                     "role": "system", 
                     "content": "You are an expert scriptwriter for YouTube videos about Hindu temples. "
                               "Ensure all Indian names and terms are written with correct pronunciation guidance."
+                            "Keep your script concise and engaging to maintain viewer attention.\n"
+                            "Each section should be 1-2 compelling sentences.\n"
+                            "Your output should follow this narrative flow:\n"
+                            "1. Begin with the title of the temple, a warm welcome and temple introduction\n"
+                            "2. Describe location and deity with proper pronunciation\n"
+                            "3. Share historical significance\n"
+                            "4. Explain architectural elements\n"
+                            "5. Cover cultural aspects and nearby attractions\n"
+                            "6. End with practical visiting information"
                 },
                 {"role": "user", "content": prompt}
             ],
             max_tokens=1500,
-            temperature=0.7
+            temperature=0.5 #0.7
         )
 
         if "choices" in response and len(response["choices"]) > 0:
@@ -136,7 +149,7 @@ def split_script_into_sections(full_script):
         "Historical Background": "",
         "Architecture Details and Idols in the temple": "",
         "Unique Cultural Features and environment surrounding the temple": "",
-        "How to get to the temple": ""
+        #"How to get to the temple": ""
     }
     
     # Split into paragraphs
@@ -158,15 +171,51 @@ def split_script_into_sections(full_script):
     print("Split sections:", sections)  # Debug print
     return sections
 
-def generate_image_for_text(api_key, text):
-    """Generate an image using OpenAI's DALL-E API based on the provided text."""
+def get_section_specific_prompt(section_title, text):
+    """Generate section-specific image prompts."""
+    prompts = {
+        "Temple Name, Location and Main Deity": (
+            f"Create a majestic exterior view of a Hindu temple: {text}. "
+            "Show grand architecture, entrance towers, and surrounding landscape. "
+            "Style: Dramatic lighting, wide-angle view, golden hour atmosphere."
+        ),
+        "Historical Background": (
+            f"Create a historical scene from a Hindu temple: {text}. "
+            "Show ancient rituals, historical events, or traditional ceremonies. "
+            "Style: Vintage look, warm tones, storytelling composition."
+        ),
+        "Architecture Details and Idols in the temple": (
+            f"Create an interior view of a Hindu temple: {text}. "
+            "Focus on intricate stone carvings, beautiful idols, ornate pillars. "
+            "Style: Detailed close-ups, warm temple lighting, devotional atmosphere."
+        ),
+        "Unique Cultural Features and environment surrounding the temple": (
+            f"Create a vibrant scene of temple culture: {text}. "
+            "Show devotees performing rituals, festival celebrations, or cultural activities. "
+            "Style: Rich colors, candid moments, emotional connection."
+        )
+    }
+    return prompts.get(section_title, text)
+
+def generate_image_for_text(api_key, text,section_title):
+    """Generate a visually appealing cartoon like image using OpenAI's DALL-E API based on the provided text."""
     openai.api_key = api_key
     retries = 3
     short_prompt = text[:1000]  # Ensure the prompt length is within the limit
+    # Enhanced prompt for better visuals
+    #enhanced_prompt1 = (
+    #    f"Create a highly detailed, visually stunning illustration of a Hindu temple scene: {short_prompt}. "
+    #    "Style: Vibrant colors, dramatic lighting, detailed architecture, cinematic composition. "
+    #    "Include intricate traditional Hindu architectural elements, ornate carvings, and spiritual atmosphere. "
+    #    "Make it look professional and captivating."
+    #)
+
+    enhanced_prompt = get_section_specific_prompt(section_title, text)
+
     for attempt in range(retries):
         try:
             response = openai.Image.create(
-                prompt=short_prompt,
+                prompt=enhanced_prompt,
                 n=1,
                 size="512x512"
             )
@@ -180,7 +229,49 @@ def generate_image_for_text(api_key, text):
             else:
                 raise ValueError(f"Image generation failed after {retries} attempts: {e}")
 
-        
+def generate_image_stability(api_key, text, section_title):
+    """Generate image using Stability AI API."""
+    retries = 2
+    #enhanced_prompt = (
+    #    f"Create a highly detailed, professional photograph of a Hindu temple scene: {text}. "
+    #    "Include intricate architecture, ornate carvings, dramatic lighting, "
+    #    "and spiritual atmosphere. Photorealistic, 4k, detailed, cinematic composition."
+    #)
+
+    enhanced_prompt = get_section_specific_prompt(section_title, text)
+
+       
+    for attempt in range(retries):
+        try:
+            response = requests.post(
+                "https://api.stability.ai/v2beta/stable-image/generate/sd3",
+                headers={
+                    "authorization": f"Bearer {api_key}",
+                    "accept": "image/*"
+                },
+                files={"none": ''},
+                data={
+                    "prompt": enhanced_prompt,
+                    "output_format": "png",
+                },
+            )
+
+            if response.status_code == 200:
+                # Save image to file
+                image_path = f"generated_image_{uuid.uuid4()}.png"
+                with open(image_path, "wb") as f:
+                    f.write(response.content)
+                return image_path
+            else:
+                raise ValueError(f"Failed to generate image: {response.json()}")
+                
+        except Exception as e:
+            if attempt < retries - 1:
+                time.sleep(2)
+            else:
+                raise ValueError(f"Image generation failed after {retries} attempts: {e}")
+
+
 def create_pdf_images_videos(pdf_images):
     """Create two videos from PDF images, handling any number of images."""
     if not pdf_images:
@@ -259,17 +350,34 @@ def create_video_with_audio(images, audios, background_music_path, pdf_images=No
     return output_file
 
 def main():
-    st.title("YouTube Shorts Scripts, TTS, and Image Generator")
+    st.title("Temple Heritage Youtube Shorts from Blogs")
 
-    openai_api_key = st.text_input("Enter your OpenAI API Key", type="password", key="openai_api_key")
-    smallest_api_key = st.text_input("Enter your Smallest API Key", type="password", key="smallest_api_key")
-    background_music_file = st.file_uploader("Upload Background Music (MP3 or WAV)", type=["mp3", "wav"], key="background_music")
+    #openai_api_key = st.text_input("Enter your OpenAI API Key", type="password", key="openai_api_key")
+    #smallest_api_key = st.text_input("Enter your Smallest API Key", type="password", key="smallest_api_key")
+    #background_music_file = st.file_uploader("Upload Background Music (MP3 or WAV)", type=["mp3", "wav"], key="background_music")
 
-    uploaded_file = st.file_uploader("Upload a PDF File", type="pdf", key="uploaded_file")
+    # Use environment variables instead of input
+    openai_api_key = os.getenv('OPENAI_API_KEY')
+    smallest_api_key = os.getenv('SMALLEST_API_KEY')
+    background_music_file = os.getenv('BACKGROUND_MUSIC')
+    stability_api_key = os.getenv('STABILITY_API_KEY')
 
-    if not openai_api_key or not smallest_api_key or not background_music_file:
-        st.warning("Please enter all required API keys and upload background music to proceed.")
+    # Add image service selection
+    image_service = st.radio(
+        "Select Image Generation Service",
+        ('Stability AI','DALL-E'),
+        key="image_service"
+    )
+
+    if not all([openai_api_key, smallest_api_key, background_music_file,stability_api_key]):
+        st.error("Missing required environment variables. Please check mdb.env file.")
         return
+    
+    #if not openai_api_key or not smallest_api_key or not background_music_file:
+    #    st.warning("Please enter all required API keys and upload background music to proceed.")
+    #    return
+    
+    uploaded_file = st.file_uploader("Upload a PDF File", type="pdf", key="uploaded_file")
 
     if uploaded_file is not None:
         st.success("PDF file uploaded successfully!")
@@ -314,12 +422,24 @@ def main():
                     st.audio(audio_path, format="audio/wav")
                     st.success(f"Audio for {section} generated and saved at: {audio_path}")
 
-                    image_url = generate_image_for_text(openai_api_key, script)
-                    image_path = f"images/{section.lower().replace(' ', '_')}.png"
-                    with open(image_path, "wb") as img_file:
-                        img_file.write(requests.get(image_url).content)
-                    images.append(image_path)
-                    st.image(image_url, caption=f"Image for {section}")
+                    #image_url = generate_image_for_text(openai_api_key, script)
+                    #image_path = f"images/{section.lower().replace(' ', '_')}.png"
+                    #with open(image_path, "wb") as img_file:
+                    #    img_file.write(requests.get(image_url).content)
+                    #images.append(image_path)
+                    #st.image(image_url, caption=f"Image for {section}")
+
+                    if image_service == 'Stability AI':
+                            image_path = generate_image_stability(stability_api_key, script, section)
+                            images.append(image_path)
+                            st.image(image_path, caption=f"Image for {section}")
+                    else:
+                            image_url = generate_image_for_text(openai_api_key, script, section)
+                            image_path = f"images/{section.lower().replace(' ', '_')}.png"
+                            with open(image_path, "wb") as img_file:
+                                img_file.write(requests.get(image_url).content)
+                            images.append(image_path)
+                            st.image(image_url, caption=f"Image for {section}")
 
                     st.download_button(
                         label=f"Download Audio for {section}",
@@ -345,7 +465,8 @@ def main():
                 try:
                     #video_path = create_video_with_audio(images, audios, background_music_file)
                      # Save background music to temporary file
-                    bg_music_path = save_uploaded_file(background_music_file)
+                    #bg_music_path = save_uploaded_file(background_music_file)
+                    bg_music_path = background_music_file
                     # Update video creation call
                     video_path = create_video_with_audio(images, audios, bg_music_path, pdf_images=pdf_images, output_file="final_video.mp4")
                     st.video(video_path)
