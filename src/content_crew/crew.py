@@ -1,14 +1,14 @@
 # src/research_crew/crew.py
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from src.tools.extract_tool import ExtractorTool
+from src.content_crew.tools.extract_tool import ExtractorTool
 import litellm,os
 
 litellm.api_key = os.getenv("NVIDIA_API_KEY")
 litellm.api_base = os.getenv("NVIDIA_LLM_ENDPOINT")
 
 @CrewBase
-class BLogPostCrew():
+class ContentCrew():
     """Research crew for comprehensive topic analysis and reporting"""
     
     @agent

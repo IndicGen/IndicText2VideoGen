@@ -4,7 +4,7 @@ import json
 import re
 from typing import List
 from utils.vectorstore import VectorStoreHandler
-from src.config.configs import keywords
+from src.content_crew.config.configs import keywords
 
 vector_store_handler=VectorStoreHandler()
 

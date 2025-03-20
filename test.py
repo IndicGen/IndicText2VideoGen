@@ -1,43 +1,26 @@
-import requests
-from bs4 import BeautifulSoup
-import json
-import re
+import subprocess
 
-url = "https://kalyangeetha.wordpress.com/2022/02/17/must-visit-ancient-central-karnataka-temples-part-4-hoysala-temples-trail/"
-response = requests.get(url)
-soup = BeautifulSoup(response.content, 'html.parser')
+# Replace with your actual API key
+API_KEY = "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"
+TEXT = "The 8.Thillai Nataraja Temple, Chidambaram, is dedicated to Lord Shiva as Nataraja, the Lord of Dance, and represents the element of space (Aakasha Lingam). It is one of the most famous temples in South India and is known for its unique architecture, including a gold-roofed stage that houses the idol of Nataraja. The temple complex covers a large area and features several shrines, mandapams, and a large temple tank. The temple's design and architecture are believed to have been conceived by the sage Patanjali and embody the connection between the human body and the universe."
+VOICE = "Magpie-Multilingual.EN-US.Female.Female-1"  # Change based on available voices
+OUTPUT_FILE = "output_audio.wav"
 
-data = {}
+# Construct the command
+command = [
+    "python", "python-clients/scripts/tts/talk.py",
+    "--server", "grpc.nvcf.nvidia.com:443",
+    "--use-ssl",
+    "--metadata", "function-id", "877104f7-e885-42b9-8de8-f6e4c6303969",
+    "--metadata", "authorization", f"Bearer {API_KEY}",
+    "--text", TEXT,
+    "--voice", VOICE,
+    "--output", OUTPUT_FILE
+]
 
-# Iterate over all headings (h1 to h6)
-for header in soup.find_all(re.compile('^h[1-6]$')):
-    heading = header.get_text(strip=True)
-    content = ""
-    next_node = header.find_next_sibling()
-
-    # Collect content until the next heading
-    while next_node and not (next_node.name and re.match(r'h[1-6]', next_node.name)):
-        if next_node.name:
-            content += next_node.get_text(separator=" ", strip=True) + " "
-        next_node = next_node.find_next_sibling()
-
-    data[heading] = content.strip()
-
-temples={}
-keywords=["temple","kovil","Mandir","Devasthan","devdhanam","devadhanam"]
-for key,value in data.items():
-    for word in keywords:
-        if word.lower() in key.lower() and "temples" not in key.lower():
-            temples[key]=value
-            break
-
-for name,details in temples.items():
-    print(name)
-
-# # Save to JSON file
-# with open('temples_filtered.json', 'w', encoding='utf-8') as f:
-#     json.dump(temples, f, ensure_ascii=False, indent=4)
-
-# print("Data extracted and saved to temples_filtered.json")
-
-
+# Run the command
+try:
+    result = subprocess.run(command, check=True, text=True, capture_output=True)
+    print("TTS Conversion Successful. Output saved to:", OUTPUT_FILE)
+except subprocess.CalledProcessError as e:
+    print("Error in TTS conversion:", e.stderr)
