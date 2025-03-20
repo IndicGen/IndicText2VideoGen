@@ -1,0 +1,49 @@
+# Ignore Python compiled files
+__pycache__/
+*.py[cod]
+*.so
+
+# Ignore virtual environments
+venv/
+env/
+*.venv
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore logs and temp files
+*.log
+debug.log
+.DS_Store
+
+# Ignore environment variables and credentials
+.env
+*.secret
+
+# Ignore dependency directories
+node_modules/
+
+# Ignore IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignore build and dist folders
+build/
+dist/
+*.egg-info/
+
+# Ignore Docker and CI/CD files
+.dockerignore
+/.github/workflows/
+
+# Ignore database and cache files
+*.sqlite3
+*.db
+
+# Ignore JetBrains IDEs
+*.iml
+/.idea/
+
+chroma_db/

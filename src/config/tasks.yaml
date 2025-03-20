@@ -1,0 +1,16 @@
+temple_tour_guide_task:
+  description: >
+    - Utilize the `ExtractorTool` to retrieve the information related to each temple present in the `data` :{data}, which is a list of temples.
+    - For each temple in the list of temples craft an in-depth and engaging narrative as if an expert temple tour guide is leading visitors through the temple, explaining its history, traditions, and cultural significance.  
+    - For example:
+      1. "Temple 1": Summary about the temple 1
+      2. "Temple 2": Summary about the temple 2
+
+    Important Notes:  
+      - You should use only the provided data and must not use your knowledge.
+      - Ensure historical and cultural accuracy, maintaining respect for traditions.  
+      
+  expected_output: >
+    A well-structured and detailed narrative providing a rich and immersive tour guide experience for visitors, for each temple in the list of temples {data}
+
+  agent: temple_tour_guide_agent
