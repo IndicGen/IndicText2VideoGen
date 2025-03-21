@@ -43,8 +43,22 @@ def filter_temple_data(data, keywords):
     temples = {}
     for key, value in data.items():
         if any(word.lower() in key.lower() for word in keywords) and "temples" not in key.lower():
+            key= re.sub(r"^\d+(\.\d+)?\.?\s*", "", key)
             temples[key] = value
+    
     return temples
+
+@app.post("/temple_names")
+async def view_temple_name(request: UploadRequest):
+    try:
+        raw_data = extract_data_from_url(request.url)
+        temple_data = filter_temple_data(raw_data, KEYWORDS)
+
+        if not temple_data:
+            raise HTTPException(status_code=404, detail="No temples found on the provided URL.") 
+        return {"temple_names": temple_data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Endpoint to scrape, embed, and upload temple data to ChromaDB
 @app.post("/upload_temple_data")

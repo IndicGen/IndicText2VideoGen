@@ -2,9 +2,9 @@ import subprocess
 
 # Replace with your actual API key
 API_KEY = "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"
-TEXT = "The 8.Thillai Nataraja Temple, Chidambaram, is dedicated to Lord Shiva as Nataraja, the Lord of Dance, and represents the element of space (Aakasha Lingam). It is one of the most famous temples in South India and is known for its unique architecture, including a gold-roofed stage that houses the idol of Nataraja. The temple complex covers a large area and features several shrines, mandapams, and a large temple tank. The temple's design and architecture are believed to have been conceived by the sage Patanjali and embody the connection between the human body and the universe."
+TEXT = "The Thillai Nataraja Temple, Chidambaram, is dedicated to Lord Shiva as Nataraja, the Lord of Dance, and represents the element of space (Aakasha Lingam). It is one of the most famous temples in South India and is known for its unique architecture, including a gold-roofed stage that houses the idol of Nataraja. The temple complex covers a large area and features several shrines, mandapams, and a large temple tank. The temple's design and architecture are believed to have been conceived by the sage Patanjali and embody the connection between the human body and the universe."
 VOICE = "Magpie-Multilingual.EN-US.Female.Female-1"  # Change based on available voices
-OUTPUT_FILE = "output_audio.wav"
+OUTPUT_FILE = "audio_output/output_audio.wav"
 
 # Construct the command
 command = [

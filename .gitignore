@@ -47,6 +47,7 @@ dist/
 
 chroma_db/
 python-clients/
+audio_output/
 
 # Audio ouptut files
 *.wav
