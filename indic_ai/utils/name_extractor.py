@@ -8,7 +8,7 @@ from src.content_crew.config.configs import keywords
 
 vector_store_handler=VectorStoreHandler()
 
-def get_data(url)-> List[str]:
+def get_data(url,log)-> List[str]:
     response = requests.get(url)
     soup = BeautifulSoup(response.content, 'html.parser')
     data = {}
@@ -35,13 +35,10 @@ def get_data(url)-> List[str]:
                 temples[key]=value
                 break
     
-    # Uploading the details of the temples to chromadb
-    for temple_name, details in temples.items():
-        print(f"[DEBUG] Trying to upload the content about {temple_name} with length {len(details)}")
-        vector_store_handler.add_text(case_id=temple_name, text=details)
-    
-    temple_names=[]
-    for name,details in temples.items():
-        temple_names.append(name)
-    
-    return temple_names
+    if log:
+        # Uploading the details of the temples to chromadb
+        for temple_name, details in temples.items():
+            print(f"[DEBUG] Uploading the content about {temple_name} with length {len(details)}")
+            vector_store_handler.add_text(case_id=temple_name, text=details)
+        
+    return temples

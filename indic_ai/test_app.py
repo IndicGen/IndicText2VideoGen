@@ -60,38 +60,38 @@ async def view_temple_name(request: UploadRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint to scrape, embed, and upload temple data to ChromaDB
-@app.post("/upload_temple_data")
-async def upload_temple_data(request: UploadRequest):
-    try:
-        raw_data = extract_data_from_url(request.url)
-        temple_data = filter_temple_data(raw_data, KEYWORDS)
+# # Endpoint to scrape, embed, and upload temple data to ChromaDB
+# @app.post("/upload_temple_data")
+# async def upload_temple_data(request: UploadRequest):
+#     try:
+#         raw_data = extract_data_from_url(request.url)
+#         temple_data = filter_temple_data(raw_data, KEYWORDS)
 
-        if not temple_data:
-            raise HTTPException(status_code=404, detail="No temples found on the provided URL.")
+#         if not temple_data:
+#             raise HTTPException(status_code=404, detail="No temples found on the provided URL.")
 
-        for temple_name, details in temple_data.items():
-            vector_store_handler.add_text(case_id=temple_name, text=details)
+#         for temple_name, details in temple_data.items():
+#             vector_store_handler.add_text(case_id=temple_name, text=details)
 
-        return {"status": "success", "message": f"{len(temple_data)} temples uploaded successfully."}
+#         return {"status": "success", "message": f"{len(temple_data)} temples uploaded successfully."}
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
 
-# Endpoint to perform RAG queries based on temple name
-@app.post("/rag_query")
-async def rag_query(request: RAGQueryRequest):
-    try:
-        results = vector_store_handler.get_documents(
-            case_id=request.temple_name)
+# # Endpoint to perform RAG queries based on temple name
+# @app.post("/rag_query")
+# async def rag_query(request: RAGQueryRequest):
+#     try:
+#         results = vector_store_handler.get_documents(
+#             case_id=request.temple_name)
 
-        if not results:
-            raise HTTPException(status_code=404, detail="No relevant documents found.")
+#         if not results:
+#             raise HTTPException(status_code=404, detail="No relevant documents found.")
 
-        return {
-            "temple_name": request.temple_name,
-            "results": results
-        }
+#         return {
+#             "temple_name": request.temple_name,
+#             "results": results
+#         }
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))

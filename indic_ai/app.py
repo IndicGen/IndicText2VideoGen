@@ -11,14 +11,17 @@ app= FastAPI()
         
 class LeadInput(BaseModel):
     blog_url : str
+    vector_log: bool
 
 @app.post("/test_blogpost")
 async def blog_test(lead: LeadInput):
     
     blog_flow.state["blog_url"]=lead.blog_url
+    blog_flow.state["vector_log"]=lead.vector_log
+
     result= await blog_flow.kickoff_async()
     
-    return {"final_output": result}
+    return result
 
 # Use this endpoint to see the documents in the given case id
 @app.get("/view_chunks/{case_id}")
