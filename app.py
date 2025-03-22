@@ -53,16 +53,19 @@ def extract_images_from_pdf(pdf_file):
     pdf_document.close()
     return image_paths
 
-def synthesize_tts(api_key, text, voice="raman", speed=1.0, sample_rate=24000):
+def synthesize_tts(api_key, text, voice_id="raman", speed=1.0, sample_rate=24000):
     if not text.strip():
         raise ValueError("Text cannot be empty for TTS synthesis.")
     try:
         client = Smallest(api_key=api_key)
-        output_file = f"audio_output/sync_synthesize_{voice}_{uuid.uuid4().hex}.wav"
+        output_dir = "audio_output"
+        if not os.path.exists(output_dir):
+            os.mkdir(output_dir)
+        output_file = f"audio_output/sync_synthesize_{voice_id}_{uuid.uuid4().hex}.wav"
         client.synthesize(
             text,
             save_as=output_file,
-            voice=voice,
+            voice_id=voice_id,
             speed=speed,
             sample_rate=sample_rate
         )

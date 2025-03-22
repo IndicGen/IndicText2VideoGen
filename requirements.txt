@@ -3,7 +3,7 @@ openai==0.28.0
 requests==2.31.0
 Pillow==10.2.0
 PyMuPDF==1.23.26
-smallest==0.0.4
+smallestai
 moviepy==1.0.3
 numpy==1.26.4
 python-dotenv==1.0.1
