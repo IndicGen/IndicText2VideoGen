@@ -51,3 +51,5 @@ audio_output/
 
 # Audio ouptut files
 *.wav
+
+test*.py
