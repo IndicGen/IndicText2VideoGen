@@ -53,3 +53,5 @@ audio_output/
 *.wav
 
 test*.py
+
+logs/
