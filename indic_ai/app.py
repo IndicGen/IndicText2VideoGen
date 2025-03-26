@@ -3,10 +3,10 @@ load_dotenv()
 
 from fastapi import FastAPI, Form
 from pydantic import BaseModel
-from src.flow import blogpostflow
+from src.flow import BlogPostFlow
 from utils.vectorstore import VectorStoreHandler
 
-blog_flow=blogpostflow()
+blog_flow=BlogPostFlow()
 app= FastAPI()
         
 class LeadInput(BaseModel):
