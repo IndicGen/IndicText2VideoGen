@@ -10,6 +10,7 @@ NVIDIA_LLM_ENDPOINT = os.getenv("NVIDIA_LLM_ENDPOINT")
 
 # LLMs
 LLM_MODEL = os.getenv("LLM_MODEL")
+RAG_MODEL = os.getenv("RAG_MODEL")
 NVIDIA_GUARD = os.getenv("NVIDIA_GUARD")
 
 # Reranking models for RAG

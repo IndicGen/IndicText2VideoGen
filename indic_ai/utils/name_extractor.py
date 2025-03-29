@@ -45,6 +45,8 @@ def get_data(url, log) -> List[str]:
         for temple_name, details in temples.items():
             logger.info(f"Uploading content about {temple_name} with length {len(details)}")
             vector_store_handler.add_text(case_id=temple_name, text=details)
+        logger.info("Adding the temple name embeddings")
+        vector_store_handler.add_temple_embeddings()
     
     logger.info("Data extraction completed successfully.")
     return temples
