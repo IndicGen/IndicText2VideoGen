@@ -55,3 +55,4 @@ audio_output/
 test*.py
 
 logs/
+audio_output/
