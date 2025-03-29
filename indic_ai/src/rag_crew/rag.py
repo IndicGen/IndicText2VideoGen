@@ -1,7 +1,8 @@
 from utils.vectorstore import VectorStoreHandler
-from config.env import NVIDIA_NIM_API_KEY, NVIDIA_LLM_ENDPOINT,RAG_MODEL
+from config.env import NVIDIA_NIM_API_KEY, NVIDIA_LLM_ENDPOINT,RAG_MODEL, TAVILY_API_KEY
 from utils.logger_config import logger
 from openai import OpenAI
+import requests
 
 class RAGPipeline:
     def __init__(self):
@@ -18,15 +19,54 @@ class RAGPipeline:
         retrieved_docs = self.vectorstore.search_documents(case_id, query, top_k)
         logger.info(f"Retrieved {len(retrieved_docs)} documents.")
         return retrieved_docs
+    
+    def search_web(self, query: str):
+        """Perform a web search using Tavily API."""
+        try:
+            logger.info(f"Performing web search for query: '{query}' using Tavily API.")
+            
+            headers = {"Content-Type": "application/json"}
+            payload = {
+                "api_key": TAVILY_API_KEY, 
+                "query": query,
+                "search_depth": "basic",
+                "num_results": 3  
+            }
+            
+            response = requests.post("https://api.tavily.com/search", json=payload, headers=headers)
+            response.raise_for_status()
+            results = response.json()
 
+            if "results" in results:
+                web_results = [result["content"] for result in results["results"][:3]]
+                logger.info(f"Retrieved {len(web_results)} web search results.")
+                return web_results
+            else:
+                logger.warning("No web search results found.")
+                return []
+
+        except Exception as e:
+            logger.error(f"Web search error: {e}", exc_info=True)
+            return []
+    
     def generate_response(self, query: str, case_id: str, top_k: int = 3):
         logger.info(f"Generating response for query: '{query}' with case_id: '{case_id}' and top_k: {top_k}")
 
         documents = self.retrieve_relevant_documents(query, case_id, top_k)
         
         if not documents:
-            logger.warning(f"No relevant documents found for case_id: {case_id} and query: '{query}'")
-            return {"response": "No relevant documents found."}
+            logger.info(f"No relevant documents found locally for '{query}', using web search.")
+            web_results = self.search_web(query)
+            logger.info(f"Webs search results: {web_results}")
+            if not web_results:
+                return {"response": "No relevant information found locally or online."}
+            context = "\n".join(web_results)
+        else:
+            # If documents are found, still use web search for additional context
+            combined_results = documents
+            context = "\n".join(combined_results)
+
+        logger.info(f"Using {len(context.splitlines())} lines of context for response generation.")
 
         context = "\n".join(documents)
         logger.info(f"Retrieved {len(documents)} documents. Constructing prompt...")

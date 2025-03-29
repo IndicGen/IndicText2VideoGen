@@ -7,7 +7,7 @@ import os
 import re
 from crewai.flow import Flow, start, listen
 from src.content_crew.crew import ContentCrew
-from utils.name_extractor import get_data
+from utils.data_handler import DataPreProcessor
 from utils.logger_config import logger
 
 litellm.api_key = os.getenv("NVIDIA_NIM_API_KEY")
@@ -44,7 +44,8 @@ class BlogPostFlow(Flow):
     @listen(fetch_lead)
     def create_data(self):
         logger.info("Extracting temple data from blog URL.")
-        temples = get_data(url=self.state["blog_url"], log=self.state["vector_log"])
+        data_preprocessor=DataPreProcessor(url=self.state['blog_url'])
+        temples = data_preprocessor.extract_data()
         self.state["temples"] = temples
         logger.info(f"Extracted {len(temples)} temples from the blog.")
         return {"message": "list with temple names is created"}

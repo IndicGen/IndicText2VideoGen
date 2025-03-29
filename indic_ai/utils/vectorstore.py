@@ -73,14 +73,39 @@ class VectorStoreHandler:
             logger.error(f"Error fetching unique case_ids: {str(e)}", exc_info=True)
             return {"error": str(e)}
     
+    def get_existing_temple_names(self):
+        """Retrieve existing temple names from the ChromaDB vector database."""
+        try:
+            existing_entries = self.collection.get()  # Fetch all stored entries
+            
+            # ChromaDB returns a dict with a key "documents"
+            if not existing_entries or "documents" not in existing_entries:
+                logger.warning("No documents found in the database.")
+                return set()
+            
+            # Extract existing temple names from the documents list
+            existing_names = set(existing_entries["documents"])
+            logger.info(f"Retrieved {len(existing_names)} existing temple names.")
+            
+            return existing_names
+        
+        except Exception as e:
+            logger.error(f"Error fetching existing temple names: {e}", exc_info=True)
+            return set()
+
     def add_temple_embeddings(self):
         try:
             unique_case_ids = self.get_temple_names()
             if not unique_case_ids:
                 logger.info("No unique case IDs found.")
                 return {"message": "No unique case IDs found."}
-            
+            # Fetch existing temple names from the vector database
+            existing_temple_names = self.get_existing_temple_names()
+
             for case_id in unique_case_ids:
+                if case_id in existing_temple_names:
+                    logger.info(f"Skipping embedding for {case_id} as it already exists in DB.")
+                    continue
                 embedding = self.embedder.get_embedding(case_id)
                 if not embedding:
                     logger.warning(f"Failed to generate embedding for case id: {case_id}")

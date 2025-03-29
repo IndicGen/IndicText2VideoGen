@@ -8,7 +8,7 @@ from src.flow import BlogPostFlow
 from utils.vectorstore import VectorStoreHandler
 from src.rag_crew.rag import RAGPipeline
 from utils.logger_config import logger
-from utils.name_extractor import get_data
+from utils.data_handler import DataPreProcessor
 
 app = FastAPI()
 blog_flow = BlogPostFlow()
@@ -16,7 +16,6 @@ blog_flow = BlogPostFlow()
 
 class BlogInput(BaseModel):
     blog_url: str
-    vector_log: bool
 
 
 @app.post("/blogpost_content")
@@ -25,7 +24,6 @@ async def blogpost_content(lead: BlogInput):
     try:
         logger.info(f"Starting blog post summary generation for URL: {lead.blog_url}")
         blog_flow.state["blog_url"] = lead.blog_url
-        blog_flow.state["vector_log"] = lead.vector_log
 
         result = await blog_flow.kickoff_async()
 
@@ -54,14 +52,19 @@ async def blogpost_content(lead: BlogInput):
 
 class DataInput(BaseModel):
     blog_url: str
+    log: bool
 
 
-@app.post("/generate_data")
-async def create_data(lead: DataInput):
+@app.post("/create_chatbot_dataset")
+async def create_data_set(lead: DataInput):
     """Store the extracted data into the vector database for future usage."""
     try:
         logger.info(f"Extracting temple data from blog URL: {lead.blog_url}")
-        temples = get_data(url=lead.blog_url, log=True)
+
+        # Pre processing the data to extract rag worthy information
+        data_preprocessor = DataPreProcessor(url=lead.blog_url)
+        temples = await data_preprocessor.processed_data(log=lead.log)
+
         if not temples:
             logger.warning(f"No temple data extracted from URL: {lead.blog_url}")
             raise HTTPException(
@@ -70,7 +73,12 @@ async def create_data(lead: DataInput):
             )
 
         logger.info(f"Successfully extracted {len(temples)} temples from the blog.")
-        return {"message": f"Successfully extracted and stored {len(temples)} temples."}
+        
+        return {
+            "message": f"Successfully extracted and cleaned{len(temples)} temples.",
+            "temples": temples,
+        }
+    
     except HTTPException as http_err:
         raise http_err  # Let FastAPI handle known HTTP errors
     except Exception as e:
@@ -81,6 +89,13 @@ async def create_data(lead: DataInput):
         raise HTTPException(
             status_code=500, detail="Internal server error. Please try again later."
         )
+
+
+@app.get("/view_all")
+async def view_all():
+    vector_store = VectorStoreHandler(collection_name="temples")
+    documents = vector_store.collection.get()
+    return documents
 
 
 @app.get("/view_documents")

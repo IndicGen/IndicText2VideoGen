@@ -25,6 +25,8 @@ NVIDIA_EMBEDDING_MODEL = os.getenv("NVIDIA_EMBEDDING_MODEL")
 if not NVIDIA_NIM_API_KEY:
     raise ValueError(" is not loaded. Check your .env file!")
 
+TAVILY_API_KEY=os.getenv("TAVILY_API_KEY")
+
 headers = {
     "Authorization": f"Bearer {NVIDIA_NIM_API_KEY}",
     "Content-Type": "application/json",
