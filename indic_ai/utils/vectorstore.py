@@ -263,7 +263,7 @@ class VectorStoreHandler:
     def get_documents(self, case_id: str):
         logger.info(f"Fetching documents for case_id: {case_id}")
         try:
-            best_match = self.get_best_match(case_id).get("best_case_id")
+            best_match = self.store_utils.get_best_match(case_id).get("best_case_id")
             case_documents = self.collection.get(where={"case_id": best_match})
             documents = case_documents.get("documents", [])
             logger.info(f"Retrieved {len(documents)} documents.")

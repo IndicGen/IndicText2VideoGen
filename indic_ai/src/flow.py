@@ -1,36 +1,22 @@
 from dotenv import load_dotenv
+
 load_dotenv()
 
 import asyncio
 import litellm
-import os
-import re
+import os, re, json
 from crewai.flow import Flow, start, listen
+
 from src.content_crew.crew import ContentCrew
+from src.audio_crew.crew import NarrationCrew
+from src.audio_crew.utils.tts_util import TTSProcessor
+
 from utils.data_handler import DataPreProcessor
 from utils.logger_config import logger
 
 litellm.api_key = os.getenv("NVIDIA_NIM_API_KEY")
 litellm.api_base = os.getenv("NVIDIA_LLM_ENDPOINT")
 
-def clean_text_for_tts(text):
-    """Cleans and formats text for smooth TTS processing."""
-    logger.info("Cleaning text for TTS processing.")
-    text = re.sub(r"##\s*", "", text)
-    text = re.sub(r"\*\*\s*", "", text)
-    text = re.sub(r"\*\s*", "", text)
-    text = re.sub(r"\n+", ". ", text)
-    text = re.sub(r"(\d+)\.\s*", r"Point \1. ", text)
-    
-    text = text.replace("1008", "one thousand and eight")
-    text = text.replace("3500", "three thousand five hundred")
-    text = text.replace("57", "fifty-seven")
-    
-    if not text.endswith("."):
-        text += "."
-    
-    logger.info("Text cleaned successfully.")
-    return text
 
 class BlogPostFlow(Flow):
     @start()
@@ -44,28 +30,71 @@ class BlogPostFlow(Flow):
     @listen(fetch_lead)
     def create_data(self):
         logger.info("Extracting temple data from blog URL.")
-        data_preprocessor=DataPreProcessor(url=self.state['blog_url'])
+        data_preprocessor = DataPreProcessor(url=self.state["blog_url"])
         temples = data_preprocessor.extract_data()
         self.state["temples"] = temples
         logger.info(f"Extracted {len(temples)} temples from the blog.")
-        return {"message": "list with temple names is created"}
+        return {"message": "Data extraction from blog is complete"}
 
     @listen(create_data)
-    async def run_blog(self):
+    async def summarize_blog(self):
         logger.info("Processing temple descriptions asynchronously.")
         temple_data = self.state["temples"]
-        
+
         async def process_temple(temple_name, description):
             logger.info(f"Processing temple: {temple_name}")
             crew_input = {"data": description}
             result = await ContentCrew().crew().kickoff_async(inputs=crew_input)
-            cleaned_summary = clean_text_for_tts(result.raw)
+            
+            tts_processor= TTSProcessor()
+            cleaned_summary = tts_processor.clean_text(result.raw)
             logger.info(f"Processing completed for temple: {temple_name}")
+
             return temple_name, cleaned_summary
 
         tasks = [process_temple(name, desc) for name, desc in temple_data.items()]
         results = await asyncio.gather(*tasks)
-        
+
         summaries = {name: summary for name, summary in results}
         logger.info("All temple descriptions processed successfully.")
-        return {"summaries": summaries}
+
+        self.state["summaries"] = summaries
+        return {"message": "Summarizing blog is complete"}
+
+    @listen(summarize_blog)
+    async def generate_tts_text(self):
+        logger.info("Processing the temples for audio generation asynchronously.")
+        temple_summaries = self.state["summaries"]
+
+        async def process_temple(temple_name, description):
+            logger.info(f"Processing temple: {temple_name}")
+            crew_input = {"text": description}
+            result = await NarrationCrew().crew().kickoff_async(inputs=crew_input)
+            logger.info(f"Processing completed for temple: {temple_name}")
+            return temple_name, json.loads(result.raw)
+
+        tasks = [process_temple(name, desc) for name, desc in temple_summaries.items()]
+        results = await asyncio.gather(*tasks)
+
+        tts_lists = {name: lists for name, lists in results}
+        logger.info("All the temple descriptiosn are ready for TTS")
+
+        self.state["tts_lists"] = tts_lists
+        return {"message": "Generating texts for TTS is complete"}
+    
+    @listen(generate_tts_text)
+    async def generate_voices(self):
+        logger.info("Generating the voice over for each temple")
+        temple_list= self.state["tts_lists"]
+        
+        tts_processor= TTSProcessor()
+        # here we cannot use asynchronous calls because we have only one key and the rate limit is set. Sequential call is possible here
+        
+        for temple_name, lists in temple_list.items():
+            for i in range(len(lists)):
+                tts_processor.synthesize_audio(lists[i], f"{temple_name}_{i}")
+            
+            logger.info(f"Stitching the audio files together for :{temple_name}")
+            tts_processor.stitch_audio_files(temple_name=temple_name)
+
+        return {"message":"Voice overs are generated"}

@@ -1,27 +1,24 @@
-# src/research_crew/crew.py
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from content_crew.tools.extract_tool import ExtractorTool
 import os
 
 @CrewBase
-class ContentCrew():
+class NarrationCrew():
     """Research crew for comprehensive topic analysis and reporting"""
     
     @agent
-    def temple_tour_guide_agent(self) -> Agent:
+    def narration_segment_agent(self) -> Agent:
         return Agent(
-            config=self.agents_config['temple_tour_guide_agent'],
+            config=self.agents_config['narration_segment_agent'],
             verbose=True,
             llm=os.getenv("LLM_MODEL")
             
         )
         
     @task
-    def temple_tour_guide_task(self) -> Task:
+    def narration_segment_task(self) -> Task:
         return Task(
-            config=self.tasks_config['temple_tour_guide_task'],
-            tools=[ExtractorTool()]
+            config=self.tasks_config['narration_segment_task'],
         )
 
     @crew
