@@ -6,7 +6,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from src.flow import BlogPostFlow
 from utils.vectorstore import VectorStoreHandler
-from src.rag_crew.rag import RAGPipeline
+from src.rag_crew.rag import GeneralRag, TempleRag
 from utils.logger_config import logger
 from utils.data_handler import DataPreProcessor
 
@@ -52,7 +52,8 @@ async def blogpost_content(lead: BlogInput):
 
 class DataInput(BaseModel):
     blog_url: str
-    log: bool
+    log_complete: bool
+    log_processed: bool
 
 
 @app.post("/create_chatbot_dataset")
@@ -63,7 +64,9 @@ async def create_data_set(lead: DataInput):
 
         # Pre processing the data to extract rag worthy information
         data_preprocessor = DataPreProcessor(url=lead.blog_url)
-        temples = await data_preprocessor.processed_data(log=lead.log)
+        temples = await data_preprocessor.processed_data(
+            log_complete=lead.log_complete, log_processed=lead.log_processed
+        )
 
         if not temples:
             logger.warning(f"No temple data extracted from URL: {lead.blog_url}")
@@ -73,12 +76,12 @@ async def create_data_set(lead: DataInput):
             )
 
         logger.info(f"Successfully extracted {len(temples)} temples from the blog.")
-        
+
         return {
             "message": f"Successfully extracted and cleaned{len(temples)} temples.",
             "temples": temples,
         }
-    
+
     except HTTPException as http_err:
         raise http_err  # Let FastAPI handle known HTTP errors
     except Exception as e:
@@ -94,8 +97,9 @@ async def create_data_set(lead: DataInput):
 @app.get("/view_all")
 async def view_all():
     vector_store = VectorStoreHandler(collection_name="temples")
-    documents = vector_store.collection.get()
-    return documents
+    processed_documents = vector_store.collection.get()
+    raw_documents = vector_store.complete_collection.get()
+    return {"processed_documents": processed_documents, "raw_documents": raw_documents}
 
 
 @app.get("/view_documents")
@@ -130,18 +134,49 @@ async def get_documents(temple_name: str):
 
 # This is a side feature, might consider adding in the future.
 class RagInput(BaseModel):
-    case_id: str
     question: str
 
 
 @app.post("/Chatbot")
 async def chat_bot(lead: RagInput):
-    """Use this endpoint to chat with the model to know more about the temples.
-    Provide the temple name to ask queries."""
-    rag = RAGPipeline()
+    """Use this endpoint to chat with the model for general queries about the temples."""
+    rag = GeneralRag()
     try:
-        logger.info(f"Received query: '{lead.question}' for case_id: '{lead.case_id}'")
-        answer = rag.generate_response(query=lead.question, case_id=lead.case_id)
+        logger.info(f"Received query: '{lead.question}'")
+        answer = rag.generate_response(query=lead.question)
+
+        if not answer or (
+            isinstance(answer, dict)
+            and "response" in answer
+            and answer["response"] == "No relevant documents found."
+        ):
+            logger.warning(f"No relevant documents found for query: '{lead.question}'")
+            raise HTTPException(status_code=404, detail="No relevant documents found.")
+
+        return {"query": lead.question, "response": answer}
+    except HTTPException as http_err:
+        raise http_err  # Let FastAPI handle known HTTP errors
+
+    except Exception as e:
+        logger.error(f"Unexpected error in /rag endpoint: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500, detail="Internal server error. Please try again later."
+        )
+
+
+class TempleRagInput(BaseModel):
+    temple_id: str
+    question: str
+
+
+@app.post("/Temple_Chatbot")
+async def temple_chat_bot(lead: TempleRagInput):
+    """Use this endpoint to chat with the model to know more about a specific temples.
+    Provide the temple name to ask queries."""
+    rag = TempleRag()
+    try:
+        logger.info(f"Received query: '{lead.question}'")
+        answer = rag.generate_response(query=lead.question, temple_id=lead.temple_id)
 
         if not answer or (
             isinstance(answer, dict)

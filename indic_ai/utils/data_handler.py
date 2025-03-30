@@ -3,7 +3,7 @@ import re
 import asyncio, httpx
 from bs4 import BeautifulSoup
 from typing import Dict
-from utils.vectorstore import VectorStoreHandler
+from utils.vectorstore import VectorStoreHandler,StoreUtils
 from src.content_crew.config.configs import keywords
 from utils.logger_config import logger
 from config.env import NVIDIA_NIM_API_KEY, NVIDIA_LLM_ENDPOINT, RAG_MODEL
@@ -78,6 +78,7 @@ class DataPreProcessor:
         logger.info("Initializing DataPreProcessor...")
         self.url = url
         self.vector_store_handler = VectorStoreHandler()
+        self.store_utils = StoreUtils(self.vector_store_handler)
         self.llm = LlmProcessor()
         logger.info("DataPreProcessor initialized successfully.")
 
@@ -121,9 +122,20 @@ class DataPreProcessor:
         logger.info("Data extraction completed successfully.")
         return temples
 
-    async def processed_data(self, log=False):
+    async def processed_data(self, log_complete=False,log_processed=False):
         """Asynchronously process temple data using LLM."""
         raw_temples = self.extract_data()
+        
+        if log_complete:
+            """Logging the complete data about the temples into the vectordb into a different collection"""
+            logger.info("Complete temple data is being uploaded")
+            for temple_name,details in raw_temples.items():
+                self.vector_store_handler.add_complete_text(case_id=temple_name,text=details)
+                logger.info(f"Complete content about {temple_name} is uploaded")
+            
+            logger.info("Adding the tepmle name embeddings")
+            self.store_utils.add_temple_embeddings(complete=True)
+            logger.info("Successfully added the temple name embeddings into complete collection")
 
         tasks = []
         for temple_name, details in raw_temples.items():
@@ -136,15 +148,16 @@ class DataPreProcessor:
 
         logger.info("Completed summarization for all temples.")  # Logging completion
 
-        if log:
-            logger.info("Temple contents are being uploaded to vetordb")
+        if log_processed:
+            """Logging the summary about the temples into the vectordb into a collection"""
+            logger.info("Temples' summary is being uploaded to vetordb")
             for temple_name, details in temples.items():
                 self.vector_store_handler.add_text(case_id=temple_name, text=details)
                 logger.info(f"Content about {temple_name} is uploaded")
             
             # Adding the temple name embeddings the first time the temples are added
             logger.info("Adding the temple name embeddings")
-            self.vector_store_handler.add_temple_embeddings()
+            self.store_utils.add_temple_embeddings(complete= False)
             logger.info("Successfully added the temple name embeddings")
 
         return temples
