@@ -133,7 +133,7 @@ class DataPreProcessor:
                 self.vector_store_handler.add_complete_text(case_id=temple_name,text=details)
                 logger.info(f"Complete content about {temple_name} is uploaded")
             
-            logger.info("Adding the tepmle name embeddings")
+            logger.info("Adding the temple name embeddings")
             self.store_utils.add_temple_embeddings(complete=True)
             logger.info("Successfully added the temple name embeddings into complete collection")
 
@@ -154,10 +154,5 @@ class DataPreProcessor:
             for temple_name, details in temples.items():
                 self.vector_store_handler.add_text(case_id=temple_name, text=details)
                 logger.info(f"Content about {temple_name} is uploaded")
-            
-            # Adding the temple name embeddings the first time the temples are added
-            logger.info("Adding the temple name embeddings")
-            self.store_utils.add_temple_embeddings(complete= False)
-            logger.info("Successfully added the temple name embeddings")
 
         return temples
