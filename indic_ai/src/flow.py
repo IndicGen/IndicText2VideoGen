@@ -45,8 +45,8 @@ class BlogPostFlow(Flow):
             logger.info(f"Processing temple: {temple_name}")
             crew_input = {"data": description}
             result = await ContentCrew().crew().kickoff_async(inputs=crew_input)
-            
-            tts_processor= TTSProcessor()
+
+            tts_processor = TTSProcessor()
             cleaned_summary = tts_processor.clean_text(result.raw)
             logger.info(f"Processing completed for temple: {temple_name}")
 
@@ -71,7 +71,11 @@ class BlogPostFlow(Flow):
             crew_input = {"text": description}
             result = await NarrationCrew().crew().kickoff_async(inputs=crew_input)
             logger.info(f"Processing completed for temple: {temple_name}")
-            return temple_name, json.loads(result.raw)
+
+            entries = re.split(r"\n?\d+\.\s", result.raw.strip())
+            final_list = [entry.strip() for entry in entries if entry.strip()]
+
+            return temple_name, final_list
 
         tasks = [process_temple(name, desc) for name, desc in temple_summaries.items()]
         results = await asyncio.gather(*tasks)
@@ -80,20 +84,23 @@ class BlogPostFlow(Flow):
         logger.info("All the temple descriptiosn are ready for TTS")
 
         self.state["tts_lists"] = tts_lists
-        return {"message": "Generating texts for TTS is complete"}
-    
+        return {
+            "message": "Generating texts for TTS is complete",
+            "tts_lists": tts_lists,
+        }
+
     @listen(generate_tts_text)
     async def generate_voices(self):
         logger.info("Generating the voice over for each temple")
         temple_list= self.state["tts_lists"]
-        
+
         tts_processor= TTSProcessor()
         # here we cannot use asynchronous calls because we have only one key and the rate limit is set. Sequential call is possible here
-        
+
         for temple_name, lists in temple_list.items():
             for i in range(len(lists)):
                 tts_processor.synthesize_audio(lists[i], f"{temple_name}_{i}")
-            
+
             logger.info(f"Stitching the audio files together for :{temple_name}")
             tts_processor.stitch_audio_files(temple_name=temple_name)
 

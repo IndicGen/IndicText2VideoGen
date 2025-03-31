@@ -14,8 +14,5 @@ narration_segment_task:
   expected_output: >
     - A structured list of text chunks, each less than 5000 characters, that together form a seamless and engaging narrative about the temple.
     - The text should be formatted as natural speech, removing unnecessary special characters, headings, and symbols that might affect pronunciation.
-    - The final output should be a string of list of strings as shown below
-      For example :
-      "["chunk_1","chunk_2","chunk_3","chunk_4",.....]"
-    
+    - The output should be formatted as numbered paragraphs, where each paragraph begins with a number followed by a period and space (e.g., "1. ...", "2. ...").
   agent: narration_segment_agent
