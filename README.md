@@ -6,19 +6,19 @@ This project generates YouTube Shorts scripts, corresponding TTS (Text-to-Speech
 
 ![Screenshot 2024-12-27 065853](https://github.com/user-attachments/assets/b6ce67e8-d814-4cd2-8982-d7d36f1b6b98)
 
-## Sample Video 1 (ver 1.1)
+## Sample AI Generated Video 1 (ver 1.1) - Ariskere Sri Chandramouleeshwara Temple
 
 https://github.com/user-attachments/assets/93aef064-d26c-4dff-a185-d9050ebad7b2
 
-## Sample Video 2 (ver 1.1)
+## Sample AI Generated Video 2 (ver 1.1) - Sri Buceswara Temple 
 
 https://github.com/user-attachments/assets/032b25be-d1d9-4fef-ac3f-9cd1a26ab24d
 
-## Sample Video 1 (ver 1.0)
+## Sample AI Generated Video 1 (ver 1.0)
 
 https://github.com/user-attachments/assets/6f2ddb46-857f-4c30-8a52-df233a3048ca
 
-## Sample Video 2 (ver 1.0)
+## Sample AI Generated Video 2 (ver 1.0)
 
 https://github.com/user-attachments/assets/b635b944-30fc-4747-85b1-3b59016dd5a9
 
