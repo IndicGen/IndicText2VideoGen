@@ -3,7 +3,7 @@ import json
 import uuid
 import time
 import requests
-from smallest import Smallest
+from smallestai import WavesClient
 import streamlit as st
 import openai
 import fitz  # PyMuPDF
@@ -57,7 +57,7 @@ def synthesize_tts(api_key, text, voice_id="raman", speed=1.0, sample_rate=24000
     if not text.strip():
         raise ValueError("Text cannot be empty for TTS synthesis.")
     try:
-        client = Smallest(api_key=api_key)
+        client = WavesClient(api_key=api_key)
         output_dir = "audio_output"
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
@@ -201,7 +201,7 @@ def get_section_specific_prompt(section_title, text):
     return prompts.get(section_title, text)
 
 def generate_image_for_text(api_key, text,section_title):
-    """Generate a visually appealing cartoon like image using OpenAI's DALL-E API based on the provided text."""
+    """Generate a visually appealing image in 3d cartoon style using OpenAI's DALL-E API based on the provided text."""
     openai.api_key = api_key
     retries = 3
     short_prompt = text[:1000]  # Ensure the prompt length is within the limit
@@ -218,7 +218,7 @@ def generate_image_for_text(api_key, text,section_title):
     for attempt in range(retries):
         try:
             response = openai.Image.create(
-                prompt=enhanced_prompt,
+                prompt="Generate a visually appealing image in 3d cartoon style for: " + enhanced_prompt,
                 n=1,
                 size="512x512"
             )
@@ -254,7 +254,7 @@ def generate_image_stability(api_key, text, section_title):
                 },
                 files={"none": ''},
                 data={
-                    "prompt": enhanced_prompt,
+                    "prompt": "Generate a visually appealing image in 3d cartoon style for: " + enhanced_prompt,
                     "output_format": "png",
                 },
             )
