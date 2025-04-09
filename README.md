@@ -10,6 +10,10 @@ This project generates YouTube Shorts scripts, corresponding TTS (Text-to-Speech
 
 https://github.com/user-attachments/assets/93aef064-d26c-4dff-a185-d9050ebad7b2
 
+## Sample Video 2 (ver 1.1)
+
+https://github.com/user-attachments/assets/032b25be-d1d9-4fef-ac3f-9cd1a26ab24d
+
 ## Sample Video 1 (ver 1.0)
 
 https://github.com/user-attachments/assets/6f2ddb46-857f-4c30-8a52-df233a3048ca
