@@ -124,16 +124,22 @@ class StoreUtils:
             logger.error(f"Error adding test embeddings: {str(e)}", exc_info=True)
             return {"error": str(e)}
 
-    def get_temple_embeddings(self):
-        case_documents = self.complete_collection.get(
-            where={"tag": "test_embeds"}, include=["embeddings", "documents"]
-        )
+    def get_temple_embeddings(self, complete: bool = False):
+        if complete:
+            case_documents = self.complete_collection.get(
+                where={"tag": "test_embeds"}, include=["embeddings", "documents"]
+            )
+        else:
+            case_documents = self.collection.get(
+                where={"tag": "test_embeds"}, include=["embeddings", "documents"]
+            )
+            
         documents = case_documents.get("documents", [])
         embeddings = case_documents.get("embeddings", [])
 
         return embeddings, documents
 
-    def get_best_match(self, query: str):
+    def get_best_match(self, query: str,complete:bool=False):
         """
         Given a query text, compute its embedding and compare it to the stored test embeddings
         (with metadata tag "test_embeds") for each unique case ID.
@@ -146,7 +152,7 @@ class StoreUtils:
                 logger.error("Failed to generate query embedding.")
                 return {"error": "Failed to generate query embedding."}
 
-            stored_embeddings, stored_caseids = self.get_temple_embeddings()
+            stored_embeddings, stored_caseids = self.get_temple_embeddings(complete)
 
             best_similarity = -1.0
             best_case_id = None
@@ -176,6 +182,7 @@ class VectorStoreHandler:
     def __init__(self, db_path="./chroma_db", collection_name="temples"):
         logger.info("Initializing VectorStoreHandler...")
         self.chroma_client = chromadb.PersistentClient(path=db_path)
+
         self.collection = self.chroma_client.get_or_create_collection(
             name=collection_name
         )
@@ -263,7 +270,8 @@ class VectorStoreHandler:
     def get_documents(self, case_id: str):
         logger.info(f"Fetching documents for case_id: {case_id}")
         try:
-            best_match = self.store_utils.get_best_match(case_id).get("best_case_id")
+            best_match = self.store_utils.get_best_match(case_id,complete=True).get("best_case_id")
+            print(f"[DEBUG] best_match: {best_match}")
             case_documents = self.collection.get(where={"case_id": best_match})
             documents = case_documents.get("documents", [])
             logger.info(f"Retrieved {len(documents)} documents.")
@@ -276,6 +284,23 @@ class VectorStoreHandler:
             logger.error(f"Error retrieving documents: {e}")
             return {"error": str(e)}
 
+    def get_tts_documents(self,case_id:str):
+        logger.info(f"Fetching documents for case_id: {case_id}")
+        try:
+            best_match = self.store_utils.get_best_match(case_id).get("best_case_id")
+            print(f"[DEBUG] best_match: {best_match}")
+            case_documents = self.collection.get(where={"case_id": best_match})
+            documents = case_documents.get("documents", [])
+            logger.info(f"Retrieved {len(documents)} documents.")
+            return (
+                documents
+                if documents
+                else {"message": f"No documents found for case_id: {case_id}"}
+            )
+        except Exception as e:
+            logger.error(f"Error retrieving documents: {e}")
+            return {"error": str(e)}
+                
     def search_temple_info(self, temple_id: str, query: str, top_k: int = 3):
         """This function is limited to specific temple alone"""
         logger.info(f"Searching vector store with case_id: {temple_id}, query: {query}")

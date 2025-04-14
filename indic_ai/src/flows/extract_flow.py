@@ -6,6 +6,7 @@ import asyncio
 import litellm
 import os, re, json
 from crewai.flow import Flow, start, listen
+from asyncio import Semaphore, gather
 
 from src.content_crew.crew import ContentCrew
 from src.audio_crew.crew import NarrationCrew
@@ -13,12 +14,13 @@ from src.audio_crew.utils.tts_util import TTSProcessor
 
 from utils.data_handler import DataPreProcessor
 from utils.logger_config import logger
+from utils.vectorstore import VectorStoreHandler, StoreUtils
 
 litellm.api_key = os.getenv("NVIDIA_NIM_API_KEY")
 litellm.api_base = os.getenv("NVIDIA_LLM_ENDPOINT")
 
 
-class BlogPostFlow(Flow):
+class ExtractFlow(Flow):
     @start()
     def fetch_lead(self):
         logger.info("Fetching blog URL.")
@@ -90,18 +92,15 @@ class BlogPostFlow(Flow):
         }
 
     @listen(generate_tts_text)
-    async def generate_voices(self):
-        logger.info("Generating the voice over for each temple")
-        temple_list= self.state["tts_lists"]
+    async def store_in_db(self):
+        logger.info("Generating the voice-over for each temple")
+        temple_dict = self.state["tts_lists"]
+        vector_store = VectorStoreHandler(collection_name="TTS_collection")
+        store_utils = StoreUtils(vector_store_handler=vector_store)
 
-        tts_processor= TTSProcessor()
-        # here we cannot use asynchronous calls because we have only one key and the rate limit is set. Sequential call is possible here
-
-        for temple_name, lists in temple_list.items():
-            for i in range(len(lists)):
-                tts_processor.synthesize_audio(lists[i], f"{temple_name}_{i}")
-
-            logger.info(f"Stitching the audio files together for :{temple_name}")
-            tts_processor.stitch_audio_files(temple_name=temple_name)
-
-        return {"message":"Voice overs are generated"}
+        for name, details in temple_dict.items():
+            for info in details:
+                vector_store.add_text(case_id=name, text=info)
+        
+        store_utils.add_temple_embeddings()
+        return {"message": "Uploaded the details to vectordb"}

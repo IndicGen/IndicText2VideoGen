@@ -122,7 +122,7 @@ class DataPreProcessor:
         logger.info("Data extraction completed successfully.")
         return temples
 
-    async def processed_data(self, log_complete=False,log_processed=False):
+    async def processed_data(self,collection_name="temples_rag", log_complete=False,log_processed=False):
         """Asynchronously process temple data using LLM."""
         raw_temples = self.extract_data()
         

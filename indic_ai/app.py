@@ -4,80 +4,42 @@ load_dotenv()
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from src.flow import BlogPostFlow
+from src.flows.extract_flow import ExtractFlow
+from src.flows.voice_flow import VoiceFlow
 from src.audio_crew.crew import NarrationCrew
 from utils.vectorstore import VectorStoreHandler
 from src.rag_crew.rag import GeneralRag, TempleRag
 from utils.logger_config import logger
 from utils.data_handler import DataPreProcessor
 
-import json
+import asyncio
 import os
 import time
 import uuid
 from dotenv import load_dotenv
 from smallest import Smallest
+from typing import Dict,Any
 
 load_dotenv()
 smallest_api_key = os.getenv("SMALLEST_API_KEY")
 
-# Global variables to track API calls
-api_call_count = 0
-last_api_call_time = 0
-
-def synthesize_tts(api_key, text, temple_name, voice="raman", speed=1.0, sample_rate=24000):
-    global api_call_count, last_api_call_time
-
-    if not text.strip():
-        raise ValueError("Text cannot be empty for TTS synthesis.")
-
-    try:
-        client = Smallest(api_key=api_key)
-        output_file = f"E:/Coding/OpenSource/blog_post/git_repo/IndicText2VideoGen/audio_output/{temple_name}.wav"
-        
-        client.synthesize(
-            text,
-            save_as=output_file,
-            voice_id=voice,
-            speed=speed,
-            sample_rate=sample_rate
-        )
-
-        # Update API call count
-        api_call_count += 1
-
-        # Introduce a 1-minute delay after every 4 API calls
-        if api_call_count % 4 == 0:
-            print("Rate limit: Waiting for 60 seconds before the next batch of API calls...")
-            time.sleep(60)
-
-        return output_file
-
-    except Exception as e:
-        if "Rate Limited" in str(e):
-            raise ValueError("Rate limited by TTS API. Please wait and retry.")
-        raise ValueError(f"TTS Synthesis failed: {e}")
-
-
-
 app = FastAPI()
-blog_flow = BlogPostFlow()
-narration = NarrationCrew()
+extract_flow = ExtractFlow()
+voice_flow = VoiceFlow()
 
 
 class BlogInput(BaseModel):
     blog_url: str
 
-
-@app.post("/blogpost_content")
-async def blogpost_content(lead: BlogInput):
+@app.post("/content_extraction")
+async def blogpost_extract(lead: BlogInput):
     """Generate summaries for the temples in the blog post given the blog URL."""
     try:
         logger.info(f"Starting blog post summary generation for URL: {lead.blog_url}")
-        blog_flow.state["blog_url"] = lead.blog_url
+        extract_flow.state["blog_url"] = lead.blog_url
 
-        result = await blog_flow.kickoff_async()
-
+        result = await extract_flow.kickoff_async()
+        
         if not result:
             logger.warning(
                 f"Blog post summary generation failed for URL: {lead.blog_url}"
@@ -100,26 +62,40 @@ async def blogpost_content(lead: BlogInput):
             status_code=500, detail="Internal server error. Please try again later."
         )
 
+class VoiceInput(BaseModel):
+    temple_name: str
 
-class NarrationInput(BaseModel):
-    text: str
+@app.post("/voice_generation")
+async def voice_generation(lead:VoiceInput):
+    """Generate voice for the temple ."""
+    try:
+        logger.info(f"Starting voice generation for temple: {lead.temple_name}")
+        voice_flow.state["temple_name"] = lead.temple_name
 
-@app.post("/narration_test")
-async def test_narration(lead: NarrationInput):
-    crew_input = {"text": lead.text}
-    result = await NarrationCrew().crew().kickoff_async(inputs=crew_input)
+        result = await voice_flow.kickoff_async()
+        
+        if not result:
+            logger.warning(
+                f"Voice generation failed for temple: {lead.temple_name}"
+            )
+            raise HTTPException(
+                status_code=500, detail="Failed to generate voice ."
+            )
+        logger.info(
+            f"Successfully completed for temple: {lead.temple_name}"
+        )
+        return result
+    except HTTPException as http_err:
+        raise http_err  # Let FastAPI handle known HTTP errors
+    except Exception as e:
+        logger.error(
+            f"Error generating voice for temple '{lead.temple_name}': {e}",
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=500, detail="Internal server error. Please try again later."
+        )
     
-    list_chunks = json.loads(result.raw)
-    
-    logger.info(f"Generating the voices for the given temple ")
-    for i in range(len(list_chunks)):
-        synthesize_tts(smallest_api_key,list_chunks[i],f"jambu_{i}")
-    logger.info("Voices are now generated")
-
-    return {
-        "message":"Voices are successfully generated."
-    }
-
 # class DataInput(BaseModel):
 #     blog_url: str
 #     log_complete: bool
@@ -168,7 +144,11 @@ async def test_narration(lead: NarrationInput):
 #     vector_store = VectorStoreHandler(collection_name="temples")
 #     processed_documents = vector_store.collection.get()
 #     raw_documents = vector_store.complete_collection.get()
-#     return {"processed_documents": processed_documents, "raw_documents": raw_documents}
+    
+#     tts_store= VectorStoreHandler(collection_name="TTS_collection")
+#     tts_docs= tts_store.collection.get()
+    
+#     return {"tts_documents":tts_docs,"processed_documents": processed_documents, "raw_documents": raw_documents}
 
 
 # @app.get("/view_documents")
