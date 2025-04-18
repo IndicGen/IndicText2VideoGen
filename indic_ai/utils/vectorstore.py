@@ -213,9 +213,9 @@ class VectorStoreHandler:
             )
         logger.info("Complete information is added successfully.")
 
-    def add_text(self, case_id: str, text: str):
+    def add_text(self, case_id: str, text: str, chunk_overlap: int = 50):
         logger.info(f"Adding text for case_id: {case_id}")
-        embeddings, text_chunks = self.embedder.get_document_embeddings(512, 50, text)
+        embeddings, text_chunks = self.embedder.get_document_embeddings(512, chunk_overlap, text)
         existing_results = self.collection.get(where={"case_id": case_id})
         existing_chunks = set(existing_results.get("documents", []))
 

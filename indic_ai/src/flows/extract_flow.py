@@ -15,6 +15,7 @@ from src.audio_crew.utils.tts_util import TTSProcessor
 from utils.data_handler import DataPreProcessor
 from utils.logger_config import logger
 from utils.vectorstore import VectorStoreHandler, StoreUtils
+from utils.scene_utils import ChunkHandler
 
 litellm.api_key = os.getenv("NVIDIA_NIM_API_KEY")
 litellm.api_base = os.getenv("NVIDIA_LLM_ENDPOINT")
@@ -83,7 +84,7 @@ class ExtractFlow(Flow):
         results = await asyncio.gather(*tasks)
 
         tts_lists = {name: lists for name, lists in results}
-        logger.info("All the temple descriptiosn are ready for TTS")
+        logger.info("All the temple descriptions are ready for TTS")
 
         self.state["tts_lists"] = tts_lists
         return {
@@ -100,7 +101,7 @@ class ExtractFlow(Flow):
 
         for name, details in temple_dict.items():
             for info in details:
-                vector_store.add_text(case_id=name, text=info)
+                vector_store.add_text(case_id=name, text=info,chunk_overlap=0)
         
         store_utils.add_temple_embeddings()
         return {"message": "Uploaded the details to vectordb"}

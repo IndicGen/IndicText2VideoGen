@@ -1,0 +1,49 @@
+narrative_analyzer_task:
+  description: >
+    - Analyze the full temple description passage provided in `data` :{data}, and break it down into visually distinct scenes suitable for image generation.
+    Important Notes:
+      - Work only with the provided passage without adding external knowledge.
+      - Identify key visual moments such as major architectural features, rituals, deity depictions, festivals, processions, or environmental settings.
+      - Ensure logical segmentation that follows the natural storytelling and narrative flow of the passage.
+
+  expected_output: >
+    A structured list where each item represents a meaningful visual scene, with a brief explanation of what the scene depicts.
+    Example:
+      - Scene 1: Grand entrance of the temple showcasing intricate carvings.
+      - Scene 2: Temple sanctum with the presiding deity adorned with jewels.
+      - Scene 3: Temple courtyard bustling during a festival celebration.
+
+  agent: narrative_analyzer_agent
+
+image_count_estimator_task:
+  description: >
+    - Estimate the optimal number of images needed based on the `scenes` provided by the `narrative_analyzer_agent`, considering the pacing required for voiceover narration.
+    Important Notes:
+      - If a scene feels too minor, redundant, or overlaps visually with an adjacent one, suggest merging for smoother pacing.
+      - Balance between visual richness and smooth voiceover pacing; avoid overwhelming or under-representing key moments.
+      - Assume the voiceover will narrate at an average speed of 120–150 words per minute and should maintain a natural rhythm with the visuals.
+
+  expected_output: >
+    A refined and final list of scenes that should be converted into images, specifying:
+      - Final Scene Number
+      - Brief Scene Description
+    Example:
+      - Scene 1: Combined view of temple entrance and courtyard activities.
+      - Scene 2: Deity darshan scene inside the illuminated sanctum.
+
+  agent: image_count_estimator_agent
+  context: [narrative_analyzer_task]
+
+prompt_writer_task:
+  description: >
+    - For each final scene decided by the `image_count_estimator_agent`, craft a detailed and vivid visual prompt optimized for the DALL-E API to generate culturally authentic and visually stunning images.
+    Important Notes:
+      - Carefully include essential visual elements: temple architecture style (e.g., Dravidian, Nagara), deity appearance details, ritual activities, festival settings, time of day, weather conditions, and traditional clothing styles if visible.
+      - Maintain clarity and avoid ambiguity — prompts must be descriptive enough for precise visual generation with minimal hallucination.
+
+  expected_output: >
+    - A strcutured list of DALL-E-ready prompts for each scene.
+    - The output should be formatted as numbered paragraphs, where each paragraph begins with a number followed by a period and space (e.g., "1. Prompt: ", "2. Prompt:").
+    
+  agent: prompt_write_agent
+  context: [image_count_estimator_task]

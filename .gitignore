@@ -55,4 +55,5 @@ audio_output/
 test*.py
 
 logs/
-audio_output/
+audio_output/final_audios
+audio_output/temp_output

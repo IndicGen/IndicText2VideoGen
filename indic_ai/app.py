@@ -6,6 +6,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from src.flows.extract_flow import ExtractFlow
 from src.flows.voice_flow import VoiceFlow
+from src.flows.image_flow import ImageFlow
 from src.audio_crew.crew import NarrationCrew
 from utils.vectorstore import VectorStoreHandler
 from src.rag_crew.rag import GeneralRag, TempleRag
@@ -18,18 +19,20 @@ import time
 import uuid
 from dotenv import load_dotenv
 from smallest import Smallest
-from typing import Dict,Any
+from typing import Dict, Any
 
 load_dotenv()
 smallest_api_key = os.getenv("SMALLEST_API_KEY")
 
-app = FastAPI()
+app = FastAPI(swagger_ui_parameters={"syntaxHighlight.theme": "monokai"})
 extract_flow = ExtractFlow()
 voice_flow = VoiceFlow()
+image_flow = ImageFlow()
 
 
 class BlogInput(BaseModel):
     blog_url: str
+
 
 @app.post("/content_extraction")
 async def blogpost_extract(lead: BlogInput):
@@ -39,7 +42,7 @@ async def blogpost_extract(lead: BlogInput):
         extract_flow.state["blog_url"] = lead.blog_url
 
         result = await extract_flow.kickoff_async()
-        
+
         if not result:
             logger.warning(
                 f"Blog post summary generation failed for URL: {lead.blog_url}"
@@ -47,9 +50,7 @@ async def blogpost_extract(lead: BlogInput):
             raise HTTPException(
                 status_code=500, detail="Failed to generate blog post summary."
             )
-        logger.info(
-            f"Successfully completed for URL: {lead.blog_url}"
-        )
+        logger.info(f"Successfully completed for URL: {lead.blog_url}")
         return result
     except HTTPException as http_err:
         raise http_err  # Let FastAPI handle known HTTP errors
@@ -62,28 +63,24 @@ async def blogpost_extract(lead: BlogInput):
             status_code=500, detail="Internal server error. Please try again later."
         )
 
+
 class VoiceInput(BaseModel):
     temple_name: str
 
+
 @app.post("/voice_generation")
-async def voice_generation(lead:VoiceInput):
+async def voice_generation(lead: VoiceInput):
     """Generate voice for the temple ."""
     try:
         logger.info(f"Starting voice generation for temple: {lead.temple_name}")
         voice_flow.state["temple_name"] = lead.temple_name
 
         result = await voice_flow.kickoff_async()
-        
+
         if not result:
-            logger.warning(
-                f"Voice generation failed for temple: {lead.temple_name}"
-            )
-            raise HTTPException(
-                status_code=500, detail="Failed to generate voice ."
-            )
-        logger.info(
-            f"Successfully completed for temple: {lead.temple_name}"
-        )
+            logger.warning(f"Voice generation failed for temple: {lead.temple_name}")
+            raise HTTPException(status_code=500, detail="Failed to generate voice .")
+        logger.info(f"Successfully completed for temple: {lead.temple_name}")
         return result
     except HTTPException as http_err:
         raise http_err  # Let FastAPI handle known HTTP errors
@@ -95,11 +92,42 @@ async def voice_generation(lead:VoiceInput):
         raise HTTPException(
             status_code=500, detail="Internal server error. Please try again later."
         )
-    
-# class DataInput(BaseModel):
-#     blog_url: str
-#     log_complete: bool
-#     log_processed: bool
+
+
+class ImageInput(BaseModel):
+    temple_name: str
+
+
+@app.post("/image_generation")
+async def image_generation(lead: ImageInput):
+    "Generates images"
+    try:
+        logger.info(f"Starting voice generation for temple: {lead.temple_name}")
+        image_flow.state["temple_name"] = lead.temple_name
+
+        result = await image_flow.kickoff_async()
+
+        if not result:
+            logger.warning(f"Voice generation failed for temple: {lead.temple_name}")
+            raise HTTPException(status_code=500, detail="Failed to generate voice .")
+        logger.info(f"Successfully completed for temple: {lead.temple_name}")
+        return result
+    except HTTPException as http_err:
+        raise http_err  # Let FastAPI handle known HTTP errors
+    except Exception as e:
+        logger.error(
+            f"Error generating voice for temple '{lead.temple_name}': {e}",
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=500, detail="Internal server error. Please try again later."
+        )
+
+    # class DataInput(BaseModel):
+    blog_url: str
+    log_complete: bool
+    log_processed: bool
+
 
 # @app.post("/create_chatbot_dataset")
 # async def create_data_set(lead: DataInput):
@@ -139,16 +167,16 @@ async def voice_generation(lead:VoiceInput):
 #         )
 
 
-# @app.get("/view_all")
-# async def view_all():
-#     vector_store = VectorStoreHandler(collection_name="temples")
-#     processed_documents = vector_store.collection.get()
-#     raw_documents = vector_store.complete_collection.get()
-    
-#     tts_store= VectorStoreHandler(collection_name="TTS_collection")
-#     tts_docs= tts_store.collection.get()
-    
-#     return {"tts_documents":tts_docs,"processed_documents": processed_documents, "raw_documents": raw_documents}
+@app.get("/view_all")
+async def view_all():
+    vector_store = VectorStoreHandler(collection_name="temples")
+    processed_documents = vector_store.collection.get()
+    raw_documents = vector_store.complete_collection.get()
+
+    tts_store= VectorStoreHandler(collection_name="TTS_collection")
+    tts_docs= tts_store.collection.get()
+
+    return {"tts_documents":tts_docs,"processed_documents": processed_documents, "raw_documents": raw_documents}
 
 
 # @app.get("/view_documents")

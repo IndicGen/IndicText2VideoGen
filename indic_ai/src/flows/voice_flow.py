@@ -32,7 +32,6 @@ class VoiceFlow(Flow):
         logger.info(f"Retrieved temple data from Db")
         return {"message": "Data retrieval from db is complete", "temple_docs":self.state["temple_docs"]}
 
-
     @listen(fetch_data)
     async def generate_voices(self):
 

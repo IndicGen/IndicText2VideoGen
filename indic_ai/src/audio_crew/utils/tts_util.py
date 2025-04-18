@@ -1,7 +1,7 @@
-import os
-import re
-import time
+import os,re,time
 from dotenv import load_dotenv
+load_dotenv()
+
 from smallest import Smallest
 from pydub import AudioSegment
 from utils.logger_config import logger
@@ -12,8 +12,6 @@ import subprocess
 class TTSProcessor:
 
     def __init__(self):
-        load_dotenv()
-
         self.smallest_ai_api = os.getenv("SMALLEST_API_KEY")
         self.api_call_count = 0
         self.last_api_call_time = 0

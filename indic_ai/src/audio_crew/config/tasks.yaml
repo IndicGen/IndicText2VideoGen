@@ -1,18 +1,25 @@
 narration_segment_task:
   description: >
     - Given the long temple description text in the provided data: {text}, split the text into smaller chunks, each containing fewer than 5000 characters.
-    - Leverage your understanding to identify natural breakpoints, to ensure that the logical flow is maintained.
-    - Ensure that no sentence or key idea is arbitrarily split, so that when the chunks are later combined, the narrative remains smooth and engaging.
-    
-    Important Notes:
-      - Donot use your knowledge while performing this task, always rely on the input.
-      - The segmentation should prioritize readability and continuity for TTS output.
-      - Ensure that each segment is coherent and the overall narrative remains intact when stitched together.
-      - Ensure that no information is lost.
+    - While splitting, ensure a natural storytelling flow, as if narrating the temple story to a listener.
+    - Absolutely do not insert or retain any headings, bullet points, numbered lists, labels like "Interesting Facts", "More Insights", or metadata like "NCN001" or "Click Here".
+    - Break the text naturally at paragraph or idea boundaries, without cutting off sentences or key ideas.
+    - Do not summarize, reword, or add any information — only restructure the given text.
+    - Maintain full fidelity to the original facts, but present them naturally.
 
-      
+    Important Notes:
+      - Completely remove any special symbols (such as *, #, -, etc.), formatting artifacts, internal references, or headings.
+      - Do not retain any bullet points, numbered subpoints, or structured lists inside the narration.
+      - Do not refer to document metadata like IDs, links, references, or prompts like "Click Here."
+      - The text must flow as natural speech, making it easy for TTS (text-to-speech) output.
+      - Prioritize smooth transitions between topics without breaking the narrative continuity.
+      - Ensure no information is lost during segmentation.
+
   expected_output: >
-    - A structured list of text chunks, each less than 5000 characters, that together form a seamless and engaging narrative about the temple.
-    - The text should be formatted as natural speech, removing unnecessary special characters, headings, and symbols that might affect pronunciation.
-    - The output should be formatted as numbered paragraphs, where each paragraph begins with a number followed by a period and space (e.g., "1. ...", "2. ...").
+    - A structured list of text chunks, each fewer than 5000 characters, written like natural narration.
+    - Each chunk must be output as a numbered paragraph, with the format: "1. <space> text", "2. <space> text", etc.
+    - No internal bullet points, no internal numbering, and no special formatting or symbols inside paragraphs — only clean, plain, readable sentences.
+    - The text must sound as if a human is verbally describing the temple to a listener.
+    - Strictly do not include character counts, additional notes, or any commentary outside the chunks.
+
   agent: narration_segment_agent
