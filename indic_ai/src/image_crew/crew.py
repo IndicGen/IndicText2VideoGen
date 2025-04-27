@@ -31,14 +31,14 @@ class ImageCrew:
         return agent
 
     @agent
-    def prompt_write_agent(self) -> Agent:
-        logger.info("Initializing prompt_write_agent...")
+    def prompt_writer_agent(self) -> Agent:
+        logger.info("Initializing prompt_writer_agent...")
         agent = Agent(
-            config=self.agents_config['prompt_write_agent'],
+            config=self.agents_config['prompt_writer_agent'],
             verbose=True,
             llm=os.getenv("LLM_MODEL")    
         )
-        logger.info("prompt_write_agent initialized successfully.")
+        logger.info("prompt_writer_agent initialized successfully.")
         return agent
 
     #=============================================================================

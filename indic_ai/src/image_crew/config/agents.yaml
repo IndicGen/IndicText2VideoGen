@@ -22,7 +22,7 @@ image_count_estimator_agent:
     and complexity to recommend the right number of images. You ensure that the visual journey matches the rhythm of the voiceover — enhancing immersion 
     without feeling rushed or sparse. Each suggested image must feel natural and integral to the story flow.
 
-prompt_write_agent:
+prompt_writer_agent:
   role: >
     Visual Prompt Engineering Specialist
 

@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import litellm
+import random
+import time
 import os, asyncio
 from crewai.flow import Flow, start, listen
 
@@ -11,6 +13,7 @@ from src.image_crew.crew import ImageCrew
 from utils.scene_utils import ChunkHandler
 from utils.vectorstore import VectorStoreHandler
 from utils.logger_config import logger
+from litellm import RateLimitError
 
 litellm.api_key = os.getenv("NVIDIA_NIM_API_KEY")
 litellm.api_base = os.getenv("NVIDIA_LLM_ENDPOINT")
@@ -44,32 +47,54 @@ class ImageFlow(Flow):
         }
 
     @listen(fetch_data)
-    def chunk_merging(self):
-        logger.info("Combining the chunks into one coherent passage")
-        
-        merger = ChunkHandler()
-        self.state["merged_docs"] = merger.merge(self.state["temple_docs"])
-        
-        return {
-            "message": "Chunks from the Db are now converted to single passage",
-            "temple_name": self.state["temple_name"],
-        }
-
-    @listen(chunk_merging)
     async def generate_prompts(self):
         temple_name = self.state["temple_name"]
         logger.info(f"Processing temple: {temple_name}")
-        desc = self.state["merged_docs"]
 
-        crew_input = {"data": desc}
+        docs = self.state["temple_docs"]
 
-        results = await ImageCrew().crew().kickoff_async(inputs=crew_input)
+        max_retries = 5
+        semaphore = asyncio.Semaphore(1)  # limit concurrency
+
+        results = {}
+
+        async def process_chunk(idx, desc):
+            async with semaphore:
+                retries = 0
+                while retries < max_retries:
+                    try:
+                        logger.info(f"Processing chunk {idx + 1} for temple: {temple_name}")
+                        crew_input = {"data": desc}
+                        image_crew = ImageCrew().crew()
+
+                        # Slow down before each request a bit
+                        await asyncio.sleep(random.uniform(1.5, 3))
+
+                        result = await image_crew.kickoff_async(inputs=crew_input)
+                        results[idx] = result.raw
+                        return  # success
+
+                    except RateLimitError as e:
+                        retries += 1
+                        wait_time = random.uniform(5, 10) * retries
+                        logger.warning(f"Rate limit hit at chunk {idx + 1}. Retry {retries}/{max_retries} after {wait_time:.1f} seconds")
+                        await asyncio.sleep(wait_time)
+
+                    except Exception as e:
+                        logger.error(f"Error processing chunk {idx + 1}: {e}")
+                        results[idx] = {"error": str(e)}
+                        return
+
+                # After max retries, give up
+                results[idx] = {"error": f"Max retries exceeded for chunk {idx + 1}"}
+
+
+        # Fire all tasks
+        tasks = [asyncio.create_task(process_chunk(idx, desc)) for idx, desc in enumerate(docs)]
+
+        await asyncio.gather(*tasks)
 
         return {
-            "temple_name": self.state["temple_name"],
-            "image_descripts": results.raw,
+            "temple_name": temple_name,
+            "image_descripts_per_chunk": results,
         }
-    
-    # @listen(generate_prompts)
-    # async def generate_images(self):
-    #     pass

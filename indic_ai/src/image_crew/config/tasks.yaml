@@ -17,33 +17,48 @@ narrative_analyzer_task:
 
 image_count_estimator_task:
   description: >
-    - Estimate the optimal number of images needed based on the `scenes` provided by the `narrative_analyzer_agent`, considering the pacing required for voiceover narration.
+    - Based on the `scenes` output from the `narrative_analyzer_agent`, estimate the optimal number of images needed to visualize the description effectively, considering voiceover pacing and visual coherence.
     Important Notes:
-      - If a scene feels too minor, redundant, or overlaps visually with an adjacent one, suggest merging for smoother pacing.
-      - Balance between visual richness and smooth voiceover pacing; avoid overwhelming or under-representing key moments.
-      - Assume the voiceover will narrate at an average speed of 120–150 words per minute and should maintain a natural rhythm with the visuals.
+      - If scenes are too minor or visually similar, merge them smartly.
+      - Maintain smooth storytelling without unnecessary scene fragmentation.
+      - Voiceover narration speed: 120–150 words per minute.
 
   expected_output: >
-    A refined and final list of scenes that should be converted into images, specifying:
+    A finalized scene list for image generation, specifying:
       - Final Scene Number
       - Brief Scene Description
     Example:
-      - Scene 1: Combined view of temple entrance and courtyard activities.
-      - Scene 2: Deity darshan scene inside the illuminated sanctum.
+      - Scene 1: Entrance and bustling courtyard combined.
+      - Scene 2: Sanctum with glowing deity.
 
   agent: image_count_estimator_agent
+
   context: [narrative_analyzer_task]
 
 prompt_writer_task:
   description: >
-    - For each final scene decided by the `image_count_estimator_agent`, craft a detailed and vivid visual prompt optimized for the DALL-E API to generate culturally authentic and visually stunning images.
+    - For each final scene decided by the `image_count_estimator_agent`, craft a vivid, detailed, and imaginative prompt optimized for generating Studio Ghibli-style art using DALL-E.
     Important Notes:
-      - Carefully include essential visual elements: temple architecture style (e.g., Dravidian, Nagara), deity appearance details, ritual activities, festival settings, time of day, weather conditions, and traditional clothing styles if visible.
-      - Maintain clarity and avoid ambiguity — prompts must be descriptive enough for precise visual generation with minimal hallucination.
+      - Focus on evoking a painterly, whimsical, soft, and magical atmosphere.
+      - Always clearly anchor the scene in Hinduism and Indian culture: use terms like "Hindu temple," "Vedic rituals," "Sanskrit scriptures," "South Indian priest,"Sri Chakra","India."
+      - Include key visual elements: temple architecture (Dravidian, Nagara, Vesara), deity depictions, rituals, environment settings (time of day, weather, season), traditional attire (dhoti, angavastram, saree), festival scenes, and natural surroundings.
+      - Explicitly avoid any references to Buddhism, Chinese, Zen, or Japanese temples or monks.
+      - Use adjectives like "dreamy," "ethereal," "vibrant," "whimsical," "magical light," "lush environment."
+      - Mention "Ghibli-style," "painterly," or "hand-drawn anime style" explicitly in the prompt to guide DALL-E.
+      - Avoid hyperrealism terms like "8k," "ultra realistic," or technical photography terms.
 
   expected_output: >
-    - A strcutured list of DALL-E-ready prompts for each scene.
-    - The output should be formatted as numbered paragraphs, where each paragraph begins with a number followed by a period and space (e.g., "1. Prompt: ", "2. Prompt:").
-    
-  agent: prompt_write_agent
+    Generate only the prompts, each clearly numbered. Do not include any titles, scene names, descriptions, or headings. The output should strictly follow this format:
+
+    1. <prompt 1>
+    2. <prompt 2>
+    3. <prompt 3>
+    ...
+
+    Example:
+    1. A dreamy South Indian temple entrance (Gopuram) surrounded by lush greenery, intricate colorful Hindu carvings glowing under the soft morning sun, sacred Sanskrit inscriptions, whimsical atmosphere, painterly Ghibli-style art, vibrant colors, magical feeling.
+    2. Inside a serene ancient Kanchipuram temple sanctum, golden oil lamps cast a warm magical glow on a beautifully adorned Hindu deity, delicate floral garlands, misty sacred aura, hand-drawn anime style, ethereal South Indian ambiance.
+
+  agent: prompt_writer_agent
+
   context: [image_count_estimator_task]
