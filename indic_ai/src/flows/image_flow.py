@@ -4,7 +4,7 @@ load_dotenv()
 
 import litellm
 import random
-import time
+import re
 import os, asyncio
 from crewai.flow import Flow, start, listen
 
@@ -93,8 +93,18 @@ class ImageFlow(Flow):
         tasks = [asyncio.create_task(process_chunk(idx, desc)) for idx, desc in enumerate(docs)]
 
         await asyncio.gather(*tasks)
-
+        
+        def process(text):
+            items = re.split(r'\d+\.\s*', text)
+            # Remove the first empty string if it appears
+            items = [item for item in items if item]
+            return items
+        
+        prompts=[]
+        for i,prompt in results.items():
+            prompts.append(process(prompt))
+        prompt_list=[item for sublist in prompts for item in sublist]
         return {
             "temple_name": temple_name,
-            "image_descripts_per_chunk": results,
+            "image_descripts_per_chunk": prompt_list,
         }
