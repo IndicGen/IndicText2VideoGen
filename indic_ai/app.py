@@ -24,7 +24,7 @@ from typing import Dict, Any
 load_dotenv()
 smallest_api_key = os.getenv("SMALLEST_API_KEY")
 
-app = FastAPI(swagger_ui_parameters={"syntaxHighlight.theme": "monokai"})
+app = FastAPI()
 extract_flow = ExtractFlow()
 voice_flow = VoiceFlow()
 image_flow = ImageFlow()
