@@ -104,6 +104,16 @@ class ImageFlow(Flow):
         for i,prompt in results.items():
             prompts.append(process(prompt))
         prompt_list=[item for sublist in prompts for item in sublist]
+        
+        # Storing the prompts in vector store 
+        prompt_store=VectorStoreHandler(collection_name="prompts")
+        prompt_meta=f"{temple_name}_prompt"
+        
+        for prompt in prompt_list:
+            prompt_store.add_text(case_id=prompt_meta,text=prompt)
+
+        self.state["prompts"] = prompt_list
+
         return {
             "temple_name": temple_name,
             "image_descripts_per_chunk": prompt_list,

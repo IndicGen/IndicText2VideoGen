@@ -3,7 +3,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
 from src.flows.extract_flow import ExtractFlow
 from src.flows.voice_flow import VoiceFlow
 from src.flows.image_flow import ImageFlow
@@ -12,6 +11,7 @@ from utils.vectorstore import VectorStoreHandler
 from src.rag_crew.rag import GeneralRag, TempleRag
 from utils.logger_config import logger
 from utils.data_handler import DataPreProcessor
+from utils.models import BlogInput, VoiceInput,ImageInput
 
 import asyncio
 import os
@@ -29,9 +29,6 @@ extract_flow = ExtractFlow()
 voice_flow = VoiceFlow()
 image_flow = ImageFlow()
 
-
-class BlogInput(BaseModel):
-    blog_url: str
 
 
 @app.post("/content_extraction")
@@ -63,11 +60,6 @@ async def blogpost_extract(lead: BlogInput):
             status_code=500, detail="Internal server error. Please try again later."
         )
 
-
-class VoiceInput(BaseModel):
-    temple_name: str
-
-
 @app.post("/voice_generation")
 async def voice_generation(lead: VoiceInput):
     """Generate voice for the temple ."""
@@ -92,11 +84,6 @@ async def voice_generation(lead: VoiceInput):
         raise HTTPException(
             status_code=500, detail="Internal server error. Please try again later."
         )
-
-
-class ImageInput(BaseModel):
-    temple_name: str
-
 
 @app.post("/image_generation")
 async def image_generation(lead: ImageInput):
